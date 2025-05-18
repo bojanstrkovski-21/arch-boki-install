@@ -13,12 +13,12 @@ class Xfce4Profile(XorgProfile):
 	def packages(self) -> list[str]:
 		return [
 			"base-devel",
-			"btop"
-			"duf"
-			"firefox"
-			"ghostty"
-			"neovim"
-			"nfs-utils"
+			"btop",
+			"duf",
+			"firefox",
+			"ghostty",
+			"neovim",
+			"nfs-utils",
 			"xfce4-arch-boki-meta",
 			"archboki-xfce",
 			"archboki-shells",
