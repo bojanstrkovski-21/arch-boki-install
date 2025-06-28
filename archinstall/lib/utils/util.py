@@ -1,18 +1,12 @@
 from pathlib import Path
-from typing import TYPE_CHECKING
 
+from archinstall.lib.translationhandler import tr
 from archinstall.tui.curses_menu import EditMenu
+from archinstall.tui.result import ResultType
 from archinstall.tui.types import Alignment
 
 from ..models.users import Password
 from ..output import FormattedOutput
-
-if TYPE_CHECKING:
-	from collections.abc import Callable
-
-	from archinstall.lib.translationhandler import DeferredTranslation
-
-	_: Callable[[str], DeferredTranslation]
 
 
 def get_password(
@@ -27,7 +21,7 @@ def get_password(
 	while True:
 		user_hdr = None
 		if failure is not None:
-			user_hdr = f"{header}\n{failure}\n"
+			user_hdr = f'{header}\n{failure}\n'
 		elif header is not None:
 			user_hdr = header
 
@@ -40,8 +34,9 @@ def get_password(
 			hide_input=True,
 		).input()
 
-		if allow_skip and not result.has_item():
-			return None
+		if allow_skip:
+			if not result.has_item() or not result.text():
+				return None
 
 		password = Password(plaintext=result.text())
 
@@ -49,12 +44,12 @@ def get_password(
 			return password
 
 		if header is not None:
-			confirmation_header = f"{header}{_('Password')}: {password.hidden()}\n"
+			confirmation_header = f'{header}{tr("Password")}: {password.hidden()}\n'
 		else:
-			confirmation_header = f"{_('Password')}: {password.hidden()}\n"
+			confirmation_header = f'{tr("Password")}: {password.hidden()}\n'
 
 		result = EditMenu(
-			str(_("Confirm password")),
+			tr('Confirm password'),
 			header=confirmation_header,
 			alignment=Alignment.CENTER,
 			allow_skip=False,
@@ -64,23 +59,28 @@ def get_password(
 		if password._plaintext == result.text():
 			return password
 
-		failure = str(_("The confirmation password did not match, please try again"))
+		failure = tr('The confirmation password did not match, please try again')
 
 
 def prompt_dir(
 	text: str,
 	header: str | None = None,
 	validate: bool = True,
+	must_exist: bool = True,
 	allow_skip: bool = False,
 	preset: str | None = None,
 ) -> Path | None:
-	def validate_path(path: str) -> str | None:
-		dest_path = Path(path)
+	def validate_path(path: str | None) -> str | None:
+		if path:
+			dest_path = Path(path)
 
-		if dest_path.exists() and dest_path.is_dir():
-			return None
+			if must_exist:
+				if dest_path.exists() and dest_path.is_dir():
+					return None
+			else:
+				return None
 
-		return str(_("Not a valid directory"))
+		return tr('Not a valid directory')
 
 	if validate:
 		validate_func = validate_path
@@ -96,10 +96,15 @@ def prompt_dir(
 		default_text=preset,
 	).input()
 
-	if allow_skip and not result.has_item():
-		return None
+	match result.type_:
+		case ResultType.Skip:
+			return None
+		case ResultType.Selection:
+			if not result.text():
+				return None
+			return Path(result.text())
 
-	return Path(result.text())
+	return None
 
 
 def is_subpath(first: Path, second: Path) -> bool:
@@ -115,9 +120,9 @@ def is_subpath(first: Path, second: Path) -> bool:
 
 def format_cols(items: list[str], header: str | None = None) -> str:
 	if header:
-		text = f"{header}:\n"
+		text = f'{header}:\n'
 	else:
-		text = ""
+		text = ''
 
 	nr_items = len(items)
 	if nr_items <= 4:
@@ -131,5 +136,5 @@ def format_cols(items: list[str], header: str | None = None) -> str:
 
 	text += FormattedOutput.as_columns(items, col)
 	# remove whitespaces on each row
-	text = "\n".join([t.strip() for t in text.split("\n")])
+	text = '\n'.join([t.strip() for t in text.split('\n')])
 	return text

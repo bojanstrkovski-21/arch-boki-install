@@ -1,18 +1,12 @@
 import copy
-from typing import TYPE_CHECKING, cast
+from typing import cast
 
 from archinstall.lib.menu.menu_helper import MenuHelper
+from archinstall.lib.translationhandler import tr
 from archinstall.tui.curses_menu import SelectMenu
 from archinstall.tui.menu_item import MenuItem, MenuItemGroup
 from archinstall.tui.result import ResultType
 from archinstall.tui.types import Alignment
-
-if TYPE_CHECKING:
-	from collections.abc import Callable
-
-	from archinstall.lib.translationhandler import DeferredTranslation
-
-	_: Callable[[str], DeferredTranslation]
 
 
 class ListManager[ValueT]:
@@ -25,7 +19,7 @@ class ListManager[ValueT]:
 	):
 		"""
 		:param prompt:  Text which will appear at the header
-		type param: string | DeferredTranslation
+		type param: string
 
 		:param entries: list/dict of option to be shown / manipulated
 		type param: list
@@ -42,9 +36,9 @@ class ListManager[ValueT]:
 
 		self._prompt = prompt
 
-		self._separator = ""
-		self._confirm_action = str(_("Confirm and exit"))
-		self._cancel_action = str(_("Cancel"))
+		self._separator = ''
+		self._confirm_action = tr('Confirm and exit')
+		self._cancel_action = tr('Cancel')
 
 		self._terminate_actions = [self._confirm_action, self._cancel_action]
 		self._base_actions = base_actions
@@ -72,7 +66,7 @@ class ListManager[ValueT]:
 
 			prompt = None
 			if self._prompt is not None:
-				prompt = f"{self._prompt}\n\n"
+				prompt = f'{self._prompt}\n\n'
 
 			prompt = None
 
@@ -88,7 +82,7 @@ class ListManager[ValueT]:
 				case ResultType.Selection:
 					value = result.get_value()
 				case _:
-					raise ValueError("Unhandled return type")
+					raise ValueError('Unhandled return type')
 
 			if value in self._base_actions:
 				value = cast(str, value)
@@ -114,7 +108,7 @@ class ListManager[ValueT]:
 		items = [MenuItem(o, value=o) for o in options]
 		group = MenuItemGroup(items, sort_items=False)
 
-		header = f"{self.selected_action_display(entry)}\n"
+		header = f'{self.selected_action_display(entry)}\n'
 
 		result = SelectMenu[str](
 			group,
@@ -128,7 +122,7 @@ class ListManager[ValueT]:
 			case ResultType.Selection:
 				value = result.get_value()
 			case _:
-				raise ValueError("Unhandled return type")
+				raise ValueError('Unhandled return type')
 
 		if value != self._cancel_action:
 			self._data = self.handle_action(value, entry, self._data)
@@ -138,14 +132,14 @@ class ListManager[ValueT]:
 		this will return the value to be displayed in the
 		"Select an action for '{}'" string
 		"""
-		raise NotImplementedError("Please implement me in the child class")
+		raise NotImplementedError('Please implement me in the child class')
 
 	def handle_action(self, action: str, entry: ValueT | None, data: list[ValueT]) -> list[ValueT]:
 		"""
 		this function is called when a base action or
 		a specific action for an entry is triggered
 		"""
-		raise NotImplementedError("Please implement me in the child class")
+		raise NotImplementedError('Please implement me in the child class')
 
 	def filter_options(self, selection: ValueT, options: list[str]) -> list[str]:
 		"""

@@ -4,43 +4,39 @@ import sys
 from enum import Enum, auto
 from typing import TYPE_CHECKING
 
+from archinstall.lib.translationhandler import tr
+
 if TYPE_CHECKING:
-	from collections.abc import Callable
-
-	from archinstall.lib.translationhandler import DeferredTranslation
-
 	from ..lib.installer import Installer
-
-	_: Callable[[str], DeferredTranslation]
 
 
 class ProfileType(Enum):
 	# top level default_profiles
-	Server = "Server"
-	Desktop = "Desktop"
-	Xorg = "Xorg"
-	Minimal = "Minimal"
-	Custom = "Custom"
+	Server = 'Server'
+	Desktop = 'Desktop'
+	Xorg = 'Xorg'
+	Minimal = 'Minimal'
+	Custom = 'Custom'
 	# detailed selection default_profiles
-	ServerType = "ServerType"
-	WindowMgr = "Window Manager"
-	DesktopEnv = "Desktop Environment"
-	CustomType = "CustomType"
+	ServerType = 'ServerType'
+	WindowMgr = 'Window Manager'
+	DesktopEnv = 'Desktop Environment'
+	CustomType = 'CustomType'
 	# special things
-	Tailored = "Tailored"
-	Application = "Application"
+	Tailored = 'Tailored'
+	Application = 'Application'
 
 
 class GreeterType(Enum):
-	Lightdm = "lightdm-gtk-greeter"
-	LightdmSlick = "lightdm-slick-greeter"
-	Sddm = "sddm"
-	Gdm = "gdm"
-	Ly = "ly"
+	Lightdm = 'lightdm-gtk-greeter'
+	LightdmSlick = 'lightdm-slick-greeter'
+	Sddm = 'sddm'
+	Gdm = 'gdm'
+	Ly = 'ly'
 
 	# .. todo:: Remove when we un-hide cosmic behind --advanced
-	if "--advanced" in sys.argv:
-		CosmicSession = "cosmic-greeter"
+	if '--advanced' in sys.argv:
+		CosmicSession = 'cosmic-greeter'
 
 
 class SelectResult(Enum):
@@ -110,12 +106,12 @@ class Profile:
 
 		return self.advanced is False or arch_config_handler.args.advanced is True
 
-	def install(self, install_session: "Installer") -> None:
+	def install(self, install_session: 'Installer') -> None:
 		"""
 		Performs installation steps when this profile was selected
 		"""
 
-	def post_install(self, install_session: "Installer") -> None:
+	def post_install(self, install_session: 'Installer') -> None:
 		"""
 		Hook that will be called when the installation process is
 		finished and custom installation steps for specific default_profiles
@@ -200,9 +196,9 @@ class Profile:
 				if sub_profile.packages:
 					packages.update(sub_profile.packages)
 
-		text = str(_("Installed packages")) + ":\n"
+		text = tr('Installed packages') + ':\n'
 
 		for pkg in sorted(packages):
-			text += f"\t- {pkg}\n"
+			text += f'\t- {pkg}\n'
 
 		return text

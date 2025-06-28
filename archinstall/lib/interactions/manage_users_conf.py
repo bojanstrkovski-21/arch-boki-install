@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING, override
+from typing import override
 
+from archinstall.lib.translationhandler import tr
 from archinstall.tui.curses_menu import EditMenu, SelectMenu
 from archinstall.tui.menu_item import MenuItem, MenuItemGroup
 from archinstall.tui.result import ResultType
@@ -12,21 +13,14 @@ from ..menu.list_manager import ListManager
 from ..models.users import User
 from ..utils.util import get_password
 
-if TYPE_CHECKING:
-	from collections.abc import Callable
-
-	from archinstall.lib.translationhandler import DeferredTranslation
-
-	_: Callable[[str], DeferredTranslation]
-
 
 class UserList(ListManager[User]):
 	def __init__(self, prompt: str, lusers: list[User]):
 		self._actions = [
-			str(_("Add a user")),
-			str(_("Change password")),
-			str(_("Promote/Demote user")),
-			str(_("Delete User")),
+			tr('Add a user'),
+			tr('Change password'),
+			tr('Promote/Demote user'),
+			tr('Delete User'),
 		]
 
 		super().__init__(
@@ -50,8 +44,8 @@ class UserList(ListManager[User]):
 				data = [d for d in data if d.username != new_user.username]
 				data += [new_user]
 		elif action == self._actions[1] and entry:  # change password
-			header = f"{_('User')}: {entry.username}\n"
-			new_password = get_password(str(_("Password")), header=header)
+			header = f'{tr("User")}: {entry.username}\n'
+			new_password = get_password(tr('Password'), header=header)
 
 			if new_password:
 				user = next(filter(lambda x: x == entry, data))
@@ -64,14 +58,15 @@ class UserList(ListManager[User]):
 
 		return data
 
-	def _check_for_correct_username(self, username: str) -> str | None:
-		if re.match(r"^[a-z_][a-z0-9_-]*\$?$", username) and len(username) <= 32:
-			return None
-		return str(_("The username you entered is invalid"))
+	def _check_for_correct_username(self, username: str | None) -> str | None:
+		if username is not None:
+			if re.match(r'^[a-z_][a-z0-9_-]*\$?$', username) and len(username) <= 32:
+				return None
+		return tr('The username you entered is invalid')
 
 	def _add_user(self) -> User | None:
 		editResult = EditMenu(
-			str(_("Username")),
+			tr('Username'),
 			allow_skip=True,
 			validator=self._check_for_correct_username,
 		).input()
@@ -82,17 +77,20 @@ class UserList(ListManager[User]):
 			case ResultType.Selection:
 				username = editResult.text()
 			case _:
-				raise ValueError("Unhandled result type")
+				raise ValueError('Unhandled result type')
 
-		header = f"{_('Username')}: {username}\n"
+		if not username:
+			return None
 
-		password = get_password(str(_("Password")), header=header, allow_skip=True)
+		header = f'{tr("Username")}: {username}\n'
+
+		password = get_password(tr('Password'), header=header, allow_skip=True)
 
 		if not password:
 			return None
 
-		header += f"{_('Password')}: {password.hidden()}\n\n"
-		header += str(_('Should "{}" be a superuser (sudo)?\n')).format(username)
+		header += f'{tr("Password")}: {password.hidden()}\n\n'
+		header += str(tr('Should "{}" be a superuser (sudo)?\n')).format(username)
 
 		group = MenuItemGroup.yes_no()
 		group.focus_item = MenuItem.yes()
@@ -111,11 +109,11 @@ class UserList(ListManager[User]):
 			case ResultType.Selection:
 				sudo = result.item() == MenuItem.yes()
 			case _:
-				raise ValueError("Unhandled result type")
+				raise ValueError('Unhandled result type')
 
 		return User(username, password, sudo)
 
 
-def ask_for_additional_users(prompt: str = "", defined_users: list[User] = []) -> list[User]:
+def ask_for_additional_users(prompt: str = '', defined_users: list[User] = []) -> list[User]:
 	users = UserList(prompt, defined_users).run()
 	return users
