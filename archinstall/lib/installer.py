@@ -16,7 +16,7 @@ from typing import Any
 from archinstall.lib.disk.device_handler import device_handler
 from archinstall.lib.disk.fido import Fido2
 from archinstall.lib.disk.utils import get_lsblk_by_mountpoint, get_lsblk_info
-from archinstall.lib.models.device_model import (
+from archinstall.lib.models.device import (
 	DiskEncryption,
 	DiskLayoutConfiguration,
 	EncryptionType,
@@ -42,7 +42,7 @@ from .luks import Luks2
 from .models.bootloader import Bootloader
 from .models.locale import LocaleConfiguration
 from .models.mirrors import MirrorConfiguration
-from .models.network_configuration import Nic
+from .models.network import Nic
 from .models.users import User
 from .output import debug, error, info, log, logger, warn
 from .pacman import Pacman
@@ -956,6 +956,7 @@ class Installer:
 
 			if bootloader and bootloader == Bootloader.Grub:
 				self.pacman.strap('grub-btrfs')
+				self.pacman.strap('inotify-tools')
 				self.enable_service('grub-btrfsd.service')
 
 	def setup_swap(self, kind: str = 'zram') -> None:
@@ -1506,7 +1507,7 @@ class Installer:
 
 		parent_dev_path = device_handler.get_parent_device_path(boot_partition.safe_dev_path)
 
-		cmd_template = [
+		cmd_template = (
 			'efibootmgr',
 			'--create',
 			'--disk',
@@ -1520,7 +1521,7 @@ class Installer:
 			'--unicode',
 			*cmdline,
 			'--verbose',
-		]
+		)
 
 		for kernel in self.kernels:
 			# Setup the firmware entry
